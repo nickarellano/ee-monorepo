@@ -1,0 +1,74 @@
+---
+name: Build ( Template )
+
+on:
+  workflow_call:
+    inputs:
+      EE_FOLDER_NAME:
+        description: "Name of the folder where the EE is located"
+        default: ""
+        required: true
+        type: string
+      EE_IMAGE_TAG:
+        description: "Tag for the image build"
+        default: "latest"
+        required: true
+        type: string
+    secrets:
+      REGISTRY_USERNAME:
+        description: "Red Hat registry username"
+        required: false
+      REGISTRY_PASSWORD:
+        description: "Red Hat registry password"
+        required: false
+      QUAY_USERNAME:
+        description: "Quay.io username"
+        required: false
+      QUAY_PASSWORD:
+        description: "Quay.io password"
+        required: false
+
+env:
+  ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN: ${{ secrets.AH_TOKEN }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: deploy
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install ansible-builder
+        run: pip install -r requirements.txt
+
+      - name: Log in to Quay.io
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_PASSWORD }}
+
+      - name: Log in to registry.redhat.io
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: registry.redhat.io
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build image
+        working-directory: "environments/${{ inputs.EE_FOLDER_NAME }}"
+        run: |
+          ansible-builder build \
+          --tag=${{ inputs.EE_FOLDER_NAME }}:${{ inputs.EE_IMAGE_TAG }}
+        env:
+          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN: ${{ secrets.AH_TOKEN }}
+
+      - name: Push to Quay.io
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ inputs.EE_FOLDER_NAME }}
+          tags: |
+            ${{ inputs.EE_IMAGE_TAG }}
+          registry: quay.io/nickarellano/
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_PASSWORD }}

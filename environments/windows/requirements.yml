@@ -1,0 +1,7 @@
+---
+collections:
+  - ansible.windows
+  - community.windows
+  - ansible.utils
+  - ansible.posix
+  - chocolatey.chocolatey
