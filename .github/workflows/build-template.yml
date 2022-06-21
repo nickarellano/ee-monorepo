@@ -34,7 +34,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: deploy
     steps:
       - uses: actions/checkout@v3
 
