@@ -1,0 +1,23 @@
+---
+name: VMware Community
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "environments/vmware/**"
+
+  workflow_dispatch:  # Allows manual execution from the actions tab
+
+jobs:
+  build:
+    uses: nickarellano/ee-monorepo/.github/workflows/build-template.yml@main
+    with:
+      EE_FOLDER_NAME: "vmware"
+      EE_IMAGE_TAG: "latest"
+    secrets:
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
